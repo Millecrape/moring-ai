@@ -1,4 +1,5 @@
 import streamlit as st
+api_key = st.secrets["GEMINI_API_KEY"]
 
 st.title("朝活AI")
 st.write("朝の30分で、今日やることを1つ決めるAIです。")
