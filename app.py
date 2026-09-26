@@ -1,5 +1,6 @@
 import streamlit as st
 from google import genai
+from database import save_activity
 
 api_key = st.secrets["GEMINI_API_KEY"]
 client = genai.Client(api_key=api_key)
@@ -11,8 +12,8 @@ task = st.text_input("今日やりたいことを入力してください")
 st.write("入力内容：", task)
 
 # 状態を初期化
-if "result" not in st.session_state:
-    st.session_state.result = None
+if "decision" not in st.session_state:
+    st.session_state.decision = None
 
 if "task" not in st.session_state:
     st.session_state.task = None
@@ -58,7 +59,7 @@ if st.button("AIに決めてもらう"):
         )
 
         st.session_state.task = interaction.output_text
-        st.session_state.result = None
+        st.session_state.decision = None
 
     else:
         st.warning("今日やりたいことを入力してください。")
@@ -73,12 +74,24 @@ if st.session_state.task:
 
     with col1:
         if st.button("やる"):
-            st.session_state.result = "やる"
+            st.session_state.decision = "やる"
+            save_activity(
+                task,
+                st.session_state.task,
+                st.session_state.decision
+            )
+            st.success("記録しました")
 
     with col2:
         if st.button("やらない"):
-            st.session_state.result = "やらない"
+            st.session_state.decision = "やらない"
+            save_activity(
+                task,
+                st.session_state.task,
+                st.session_state.decision
+            )
+            st.success("記録しました")
 
 # 結果を表示
-if st.session_state.result:
-    st.write(f"「{st.session_state.result}」を選びました。")
+if st.session_state.decision:
+    st.write(f"「{st.session_state.decision}」を選びました。")
