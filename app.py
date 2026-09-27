@@ -1,6 +1,8 @@
 import streamlit as st
 from google import genai
 from database import save_activity
+from datetime import datetime
+from database import save_activity, get_activities
 
 api_key = st.secrets["GEMINI_API_KEY"]
 client = genai.Client(api_key=api_key)
@@ -75,23 +77,39 @@ if st.session_state.task:
     with col1:
         if st.button("やる"):
             st.session_state.decision = "やる"
+            created_at = datetime.now().strftime("%Y-%m-%d")
             save_activity(
                 task,
                 st.session_state.task,
-                st.session_state.decision
+                st.session_state.decision,
+                created_at
             )
             st.success("記録しました")
 
     with col2:
         if st.button("やらない"):
             st.session_state.decision = "やらない"
+            created_at = datetime.now().strftime("%Y-%m-%d")
             save_activity(
                 task,
                 st.session_state.task,
-                st.session_state.decision
+                st.session_state.decision,
+                created_at
             )
             st.success("記録しました")
 
 # 結果を表示
 if st.session_state.decision:
     st.write(f"「{st.session_state.decision}」を選びました。")
+
+# 過去の活動履歴を表示
+with st.expander("過去の朝活"):
+    activities = get_activities()
+
+    for activity in activities:
+        created_at, description, result = activity
+
+        st.write(f"📅 {created_at}")
+        st.write(description)
+        st.write(f"結果：{result}")
+        st.divider()

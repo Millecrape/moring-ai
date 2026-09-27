@@ -1,6 +1,6 @@
 import sqlite3
 
-def save_activity(task, description, decision):
+def save_activity(task, description, decision, created_at):
     conn = sqlite3.connect("morning_ai.db")
     cursor = conn.cursor()
 
@@ -17,9 +17,24 @@ def save_activity(task, description, decision):
     """)
 
     cursor.execute(
-        "INSERT INTO activities (task, description, decision) VALUES (?, ?, ?)",
-        (task, description, decision)
+        "INSERT INTO activities (task, description, decision, created_at) VALUES (?, ?, ?, ?)",
+        (task, description, decision, created_at)
     )
 
     conn.commit()
     conn.close()
+
+def get_activities():
+    conn = sqlite3.connect("morning_ai.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT created_at, description, result
+        FROM activities
+        ORDER BY created_at DESC
+    """)
+
+    activities = cursor.fetchall()
+
+    conn.close()
+    return activities
