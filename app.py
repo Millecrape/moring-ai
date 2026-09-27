@@ -1,7 +1,5 @@
 import streamlit as st
 from google import genai
-from database import save_activity
-from datetime import datetime
 from database import save_activity, get_activities
 
 api_key = st.secrets["GEMINI_API_KEY"]
@@ -14,11 +12,15 @@ task = st.text_input("今日やりたいことを入力してください")
 st.write("入力内容：", task)
 
 # 状態を初期化
+if "activity" not in st.session_state:
+    st.session_state.activity = None
+
 if "decision" not in st.session_state:
     st.session_state.decision = None
 
 if "task" not in st.session_state:
     st.session_state.task = None
+
 
 # AIに決めてもらう
 if st.button("AIに決めてもらう"):
@@ -60,56 +62,106 @@ if st.button("AIに決めてもらう"):
             input=prompt
         )
 
-        st.session_state.task = interaction.output_text
+        description = interaction.output_text
+
+        # AIが決めた内容を保存
+        st.session_state.task = task
+        st.session_state.activity = {
+            "task": task,
+            "description": description
+        }
+
         st.session_state.decision = None
 
     else:
         st.warning("今日やりたいことを入力してください。")
 
 
-
 # 決められたタスクを表示
 if st.session_state.task:
-    st.write(st.session_state.task)
+    st.write(st.session_state.activity["description"])
 
     col1, col2 = st.columns(2)
 
     with col1:
         if st.button("やる"):
             st.session_state.decision = "やる"
-            created_at = datetime.now().strftime("%Y-%m-%d")
-            save_activity(
-                task,
-                st.session_state.task,
-                st.session_state.decision,
-                created_at
-            )
-            st.success("記録しました")
 
     with col2:
         if st.button("やらない"):
             st.session_state.decision = "やらない"
-            created_at = datetime.now().strftime("%Y-%m-%d")
+
             save_activity(
-                task,
-                st.session_state.task,
-                st.session_state.decision,
-                created_at
+                st.session_state.activity["task"],
+                st.session_state.activity["description"],
+                "やらない"
             )
+
             st.success("記録しました")
 
+
 # 結果を表示
-if st.session_state.decision:
-    st.write(f"「{st.session_state.decision}」を選びました。")
+if st.session_state.decision == "やる":
+
+    st.write("朝活を実行したら、結果を記録してください。")
+
+    result = st.radio(
+        "実行結果",
+        ["やった", "やらなかった"]
+    )
+
+    if result == "やった":
+
+        satisfaction = st.radio(
+            "今日の朝活の満足度は？",
+            [1, 2, 3, 4, 5],
+            horizontal=True
+        )
+
+        if st.button("記録する"):
+
+            save_activity(
+                st.session_state.activity["task"],
+                st.session_state.activity["description"],
+                "やる",
+                "やった",
+                satisfaction
+            )
+
+            st.success("記録しました！")
+
+    elif result == "やらなかった":
+
+        if st.button("記録する"):
+
+            save_activity(
+                st.session_state.activity["task"],
+                st.session_state.activity["description"],
+                "やる",
+                "やらなかった"
+            )
+
+            st.success("記録しました！")
+
 
 # 過去の活動履歴を表示
 with st.expander("過去の朝活"):
+
     activities = get_activities()
 
     for activity in activities:
-        created_at, description, result = activity
+
+        created_at, task, description, decision, result, satisfaction = activity
 
         st.write(f"📅 {created_at}")
+        st.write(f"入力：{task}")
         st.write(description)
-        st.write(f"結果：{result}")
+        st.write(f"判断：{decision}")
+
+        if result:
+            st.write(f"結果：{result}")
+
+        if satisfaction:
+            st.write(f"満足度：{satisfaction} / 5")
+
         st.divider()
