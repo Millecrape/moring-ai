@@ -25,17 +25,17 @@ if "task" not in st.session_state:
 activities = get_activities()
 
 if activities:
-    yesterday = activities[0]
+    recent_info = ""
 
-    yesterday_info = f"""
-昨日の朝活：
-- やること：{yesterday[1]}
-- 内容：{yesterday[3]}
-- 実行結果：{yesterday[4]}
-- 満足度：{yesterday[5]}
+    for activity in activities:
+        recent_info += f"""
+- 朝活：{activity[1]}
+- 内容：{activity[2]}
+- 実行結果：{activity[4]}
+- 満足度：{activity[5]}
 """
 else:
-    yesterday_info = "昨日の履歴はありません。"
+    recent_info = "なし"
 
 # AIに決めてもらう
 if st.button("AIに決めてもらう"):
@@ -64,15 +64,13 @@ if st.button("AIに決めてもらう"):
 - ステップは実行順に2〜4個程度にする
 - 達成条件は、何をしたら完了なのか明確にする
 
-# 昨日の朝活
-{yesterday_info}
+# 最近の朝活
+{recent_info}
 
-# 昨日の朝活の扱い
-- 昨日の実行結果と満足度を考慮して、今日の朝活を決める
-- 昨日とまったく同じ内容を繰り返さない
-- 昨日の満足度が低かった場合は、同じような内容を避ける
-- 昨日実行できなかった場合は、より実行しやすい内容にする
-- ユーザーの今日の入力を最優先する
+# 最近の朝活の扱い
+- 最近の朝活とまったく同じ内容を繰り返さない
+- 最近の朝活と目的・作業内容がほぼ同じものもできるだけ避ける
+- 過去の朝活を参考にしつつ、ユーザーの今日の入力を最優先する
 
 # 出力ルール
 - 挨拶や説明などの余計な文章を入れない
@@ -175,8 +173,8 @@ if st.session_state.decision == "やる":
             st.success("記録しました！")
 
 
-# 過去の活動履歴を表示
-with st.expander("過去の朝活"):
+# 最近の活動履歴を表示
+with st.expander("最近の朝活"):
 
     activities = get_activities()
 

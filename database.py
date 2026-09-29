@@ -18,7 +18,7 @@ def save_activity(task, description, decision, result=None, satisfaction=None):
     conn.close()
 
 
-def get_activities():
+def get_activities(limit=5):
     conn = sqlite3.connect("morning_ai.db")
     cursor = conn.cursor()
 
@@ -26,7 +26,8 @@ def get_activities():
         SELECT created_at, task, description, decision, result, satisfaction
         FROM activities
         ORDER BY created_at DESC, id DESC
-    """)
+        LIMIT ?
+    """, (limit,))
 
     activities = cursor.fetchall()
 
