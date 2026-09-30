@@ -86,12 +86,17 @@ if st.button("AIに決めてもらう"):
 達成条件：〜〜〜
 """
 
-        interaction = client.interactions.create(
-            model="gemini-3.6-flash",
-            input=prompt
-        )
+        try:
+            interaction = client.interactions.create(
+                model="gemini-3.6-flash",
+                input=prompt
+            )
 
-        description = interaction.output_text
+            description = interaction.output_text
+
+        except Exception as e:
+            st.error(f"AIの処理でエラーが発生しました: {e}")
+            st.stop()
 
         # AIが決めた内容を保存
         st.session_state.task = task
@@ -120,13 +125,16 @@ if st.session_state.task:
         if st.button("やらない"):
             st.session_state.decision = "やらない"
 
-            save_activity(
-                st.session_state.activity["task"],
-                st.session_state.activity["description"],
-                "やらない"
-            )
+            try:
+                save_activity(
+                    st.session_state.activity["task"],
+                    st.session_state.activity["description"],
+                    "やらない"
+                )
+                st.success("記録しました")
 
-            st.success("記録しました")
+            except Exception as e:
+                st.error(f"記録の保存でエラーが発生しました: {e}")
 
 
 # 結果を表示
@@ -149,28 +157,36 @@ if st.session_state.decision == "やる":
 
         if st.button("記録する"):
 
-            save_activity(
-                st.session_state.activity["task"],
-                st.session_state.activity["description"],
-                "やる",
-                "やった",
-                satisfaction
-            )
+            try:
+                save_activity(
+                    st.session_state.activity["task"],
+                    st.session_state.activity["description"],
+                    "やる",
+                    "やった",
+                    satisfaction
+                )
 
-            st.success("記録しました！")
+                st.success("記録しました！")
+
+            except Exception as e:
+                st.error(f"記録の保存でエラーが発生しました: {e}")
 
     elif result == "やらなかった":
 
         if st.button("記録する"):
 
-            save_activity(
-                st.session_state.activity["task"],
-                st.session_state.activity["description"],
-                "やる",
-                "やらなかった"
-            )
+            try:
+                save_activity(
+                    st.session_state.activity["task"],
+                    st.session_state.activity["description"],
+                    "やる",
+                    "やらなかった"
+                )
 
-            st.success("記録しました！")
+                st.success("記録しました！")
+
+            except Exception as e:
+                st.error(f"記録の保存でエラーが発生しました: {e}")
 
 
 # 最近の活動履歴を表示
