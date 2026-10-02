@@ -1,9 +1,11 @@
 import streamlit as st
 from google import genai
-from database import save_activity, get_activities
+from database import save_activity, get_activities, init_db
 
 api_key = st.secrets["GEMINI_API_KEY"]
 client = genai.Client(api_key=api_key)
+
+init_db()
 
 st.title("朝活AI")
 st.write("朝の30分で、今日やることを1つ決めるAIです。")
